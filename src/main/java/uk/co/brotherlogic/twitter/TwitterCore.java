@@ -13,10 +13,13 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.UserList;
 import twitter4j.conf.ConfigurationBuilder;
+import uk.co.brotherlogic.twitter.core.TwitterList;
+import uk.co.brotherlogic.twitter.core.TwitterUser;
 
 public class TwitterCore
 {
    static long userID = 6029552L;
+   static String username = "BrotherLogic";
    static Twitter twitter = null;
 
    private static void loadTwitter() throws IOException
@@ -54,15 +57,34 @@ public class TwitterCore
       return twitter;
    }
 
-   public static List<String> getTwitterLists() throws IOException
+   public static boolean subscribes(TwitterUser user, TwitterList list)
    {
-      List<String> lists = new LinkedList<String>();
+      try
+      {
+         Twitter twit = getTwitter();
+         return twit.showUserListMembership(list.getID(), user.getID()).getId() == user.getID();
+      }
+      catch (TwitterException e)
+      {
+         // e.printStackTrace();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+
+      return false;
+   }
+
+   public static List<TwitterList> getTwitterLists() throws IOException
+   {
+      List<TwitterList> lists = new LinkedList<TwitterList>();
 
       try
       {
          PagableResponseList<UserList> resp = getTwitter().getUserLists(userID, -1);
          for (UserList list : resp)
-            System.out.println(list.getName());
+            lists.add(new TwitterList(list));
       }
       catch (TwitterException e)
       {
@@ -72,9 +94,4 @@ public class TwitterCore
       return lists;
    }
 
-   public static void main(String[] args) throws TwitterException, IOException
-   {
-      for (String list : TwitterCore.getTwitterLists())
-         System.out.println(list);
-   }
 }
